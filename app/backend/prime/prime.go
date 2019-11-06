@@ -9,11 +9,6 @@ import (
 
 var maxIndex = int(math.Pow(10, 10))
 
-type nthPrimeResult struct {
-	number int
-	err    error
-}
-
 func nthprimePrimitive(n int) (int, error) {
 	if n < 1 || n > maxIndex {
 		return 0, fmt.Errorf("valid indexes are [1..%d]", maxIndex)

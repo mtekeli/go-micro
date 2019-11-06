@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,8 +14,8 @@ import (
 )
 
 type nthPrimeResult struct {
-	number int
-	dur    time.Duration
+	Number int           `json:"number"`
+	Dur    time.Duration `json:"dur"`
 	err    error
 }
 
@@ -40,7 +41,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	indexQuery := vars["index"]
 	n, err := strconv.Atoi(indexQuery)
 	if err != nil {
-		fmt.Fprint(w, "invalid argument")
+		http.Error(w, "invalid argument", http.StatusBadRequest)
 		return
 	}
 
@@ -61,14 +62,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Request canceled")
 		cancel()
 	case <-ctx.Done():
-		fmt.Fprintf(w, "timed out after %d seconds", int(timeOut.Seconds()))
+		http.Error(w, fmt.Sprintf("timed out after %d seconds", int(timeOut.Seconds())), http.StatusInternalServerError)
 		cancel()
 	case result := <-ch:
 		fmt.Println("Replying to request")
 		if result.err != nil {
-			fmt.Fprint(w, result.err)
+			http.Error(w, fmt.Sprintf("failed to find the number. Err:%s", result.err.Error()), http.StatusInternalServerError)
+			return
+		}
+
+		json, err := json.Marshal(result)
+		if err != nil {
+			http.Error(w, "failed on json marshall", http.StatusInternalServerError)
 		} else {
-			fmt.Fprint(w, fmt.Sprintf("%d. prime number is %d (%.1fs)", n, result.number, result.dur.Seconds()))
+			fmt.Fprint(w, string(json))
 		}
 	}
 }
@@ -78,8 +85,8 @@ func nthPrime(ctx context.Context, ch chan<- *nthPrimeResult, n int) {
 	primeNum, err := prime.NthprimeEratosthenes(ctx, n)
 	endTime := time.Now()
 	res := &nthPrimeResult{
-		number: primeNum,
-		dur:    endTime.Sub(startTime),
+		Number: primeNum,
+		Dur:    endTime.Sub(startTime),
 		err:    err,
 	}
 
