@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"time"
 
+	"github/mtekeli/go-micro/app/backend/prime"
+
 	"github.com/gorilla/mux"
-	"mtekeli.io/go-micro/app/backend/prime"
 )
 
 type nthPrimeResult struct {
@@ -21,11 +22,14 @@ type nthPrimeResult struct {
 
 func main() {
 	router := mux.NewRouter()
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "ok")
+	})
 	router.HandleFunc("/prime/{index:[0-9]+}", handler)
 
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         "127.0.0.1:8081",
+		Addr:         ":8081",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -75,6 +79,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "failed on json marshall", http.StatusInternalServerError)
 		} else {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			fmt.Fprint(w, string(json))
 		}
 	}

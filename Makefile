@@ -1,14 +1,15 @@
 .PHONY: build, run, test, bench
 
 build:
-	@ cd app/backend && go build
-	#@ docker build -t backend app/backend
-	#@ docker run -p 80:8081 --rm backend
-
+	@ docker-compose build
+	
 run: build
-	@ cd app/backend && ./backend
+	@ docker-compose up &
 
-test: build
+stop:
+	docker-compose down
+
+test:
 	@ cd app/backend/prime && go test -v
 
 bench:

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>The nth Prime</title>
+  <meta name="description" content="finds the prime number">
+  <meta name="author" content="SitePoint">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body> 
+    <div id="result">
+      {{ if and .Number .Dur }}
+      <h3>Prime number is</h3>
+      <h2>{{ .Number }}</h2>
+      <h4>generated in {{ .Dur }}</h4>
+      {{ end }}
+    </div>
+    <div class="container"> 
+    <form id="contact" action="/prime" method="post">
+      <h3>Enter the index</h3>
+      <h4>It must be between 1 and 10000000</h4>
+      <fieldset>
+        <input name="index" placeholder="Index" type="number" tabindex="1" required autofocus>
+      </fieldset>
+      <fieldset>
+        <button name="submit" type="submit" id="contact-submit" data-submit="...Sending">Submit</button>
+      </fieldset>
+    </form>
+  </div>
+</body>
+</html>

@@ -3,9 +3,13 @@ version: "3.7"
 services:
   backend:
     build: app/backend
-    image: go-micro_backend
+    image: prime
     ports:
-      - "80:8081"
-      
-  #frontend:
-  #  build: redis
+      - "81:8081"
+  frontend:
+    build: app/frontend
+    image: webapp
+    ports:
+      - "80:8080"
+    #volumes:
+    #  - .app/frontend:/go/src/mtekeli.io/go-micro/app/frontend

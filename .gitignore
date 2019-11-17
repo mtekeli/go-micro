@@ -1,2 +1,4 @@
 
 app/backend/backend
+app/frontend/webApp
+.DS_Store

@@ -94,23 +94,6 @@ func isPrimeSqrMethod(number int) bool {
 	return true
 }
 
-func isPrimeFastMethod(number int) bool {
-	if number < 13 {
-		return isPrimeSqrMethod(number)
-	}
-
-	realN := float64(number)
-	lowerLimit := int(realN * (math.Log(realN*math.Log(realN)) - 1))
-	higherLimit := int(realN * math.Log(realN*math.Log(realN)))
-	for i := lowerLimit + 1; i < higherLimit; i++ {
-		if number%i == 0 {
-			return false
-		}
-	}
-
-	return true
-}
-
 func nthPrimesSieveOfEratosthenes(ctx context.Context, n int) (int, error) {
 	if n < 1 {
 		panic("given index must be >=1")
