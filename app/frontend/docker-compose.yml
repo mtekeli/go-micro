@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+  frontend:
+    build: .
+    image: webapp
+    ports:
+      - "8080:8080"
+    #volumes:
+    #  - .app/frontend:/go/src/mtekeli.io/go-micro/app/frontend
+    environment:
+      - SERVICE_PORTS=8080
+    networks:
+      - common_bridge
+      - web
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 5
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - frontend
+    environment:
+      - BALANCE=leastconn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
+    networks: 
+      - web
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+    web:
+      driver: overlay
+    common_bridge:
+      external: true

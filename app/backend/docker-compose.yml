@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+  backend:
+    build: .
+    image: prime
+    ports:
+      - "8081:8081"
+    networks:
+      - backend_bridge
+    environment:
+      - SERVICE_PORTS=8081
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 5
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - backend
+    networks:
+      - backend_bridge
+      - common_bridge
+    environment:
+      - BALANCE=leastconn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 81:80
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+    backend_bridge:
+        name: backend_bridge
+    common_bridge:
+        name: common_bridge
