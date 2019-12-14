@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
-	"github/mtekeli/go-micro/app/backend/prime"
+	"github.com/mtekeli/go-micro/app/backend/prime"
 
+	"github.com/apsdehal/go-logger"
 	"github.com/gorilla/mux"
 )
 
@@ -20,7 +21,24 @@ type nthPrimeResult struct {
 	err    error
 }
 
+var log *logger.Logger
+var hostName = ""
+
 func main() {
+	var err error
+	log, err = logger.New("log_backend", 1, os.Stdout)
+	if err != nil {
+		panic(err)
+	}
+
+	hostName, err = os.Hostname()
+	if err != nil {
+		log.Panic("failed to get hostname")
+	}
+
+	format := "[%{time} %{module}] [%{lvl}] %{message}"
+	log.SetFormat(fmt.Sprintf("[%s] %s", hostName, format))
+
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "ok")
@@ -34,13 +52,15 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	fmt.Println("running server")
-	log.Fatal(srv.ListenAndServe())
+	log.Info("starting server")
+	if err := srv.ListenAndServe(); err != nil {
+		log.Panicf("failed on listen: %e", err)
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Printf("Received request with vars: %s\n", vars)
+	log.InfoF("Received request with vars: %s\n", vars)
 	timeOut := 10 * time.Second
 	indexQuery := vars["index"]
 	n, err := strconv.Atoi(indexQuery)
@@ -63,13 +83,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	select {
 	case <-r.Context().Done():
-		fmt.Println("Request canceled")
+		log.Info("Request canceled")
 		cancel()
 	case <-ctx.Done():
 		http.Error(w, fmt.Sprintf("timed out after %d seconds", int(timeOut.Seconds())), http.StatusInternalServerError)
 		cancel()
 	case result := <-ch:
-		fmt.Println("Replying to request")
+		log.Info("Replying to request")
 		if result.err != nil {
 			http.Error(w, fmt.Sprintf("failed to find the number. Err:%s", result.err.Error()), http.StatusInternalServerError)
 			return
